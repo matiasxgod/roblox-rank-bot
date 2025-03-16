@@ -10,6 +10,7 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
+// Function to retrieve CSRF token from Roblox API
 async function getCsrfToken() {
     try {
         const response = await axios.post('https://auth.roblox.com/v2/logout', {}, {
@@ -17,11 +18,12 @@ async function getCsrfToken() {
         });
         return response.headers['x-csrf-token'];
     } catch (error) {
-        console.error("❌ CSRF Token alınamadı. Cookie bilgisini kontrol et.");
+        console.error("❌ Failed to retrieve CSRF token. Check the cookie information.");
         return null;
     }
 }
 
+// Function to change a user's rank in the Roblox group
 async function changeRank(userId, roleId) {
     const csrfToken = await getCsrfToken();
     if (!csrfToken) return false;
@@ -40,17 +42,18 @@ async function changeRank(userId, roleId) {
         );
         return response.status === 200;
     } catch (error) {
-        console.error(`❌ Hata Kodu: ${error.response.status}, Cevap: ${error.response.data}`);
+        console.error(`❌ Error Code: ${error.response.status}, Response: ${error.response.data}`);
         return false;
     }
 }
 
+// Event listener for messages
 client.on('messageCreate', async message => {
     if (!message.content.startsWith('!setrank') || message.author.bot) return;
 
     const args = message.content.split(' ');
     if (args.length < 3) {
-        return message.reply("❌ Kullanım: !setrank <userId> <roleId>");
+        return message.reply("❌ Usage: !setrank <userId> <roleId>");
     }
 
     const userId = args[1];
@@ -58,10 +61,11 @@ client.on('messageCreate', async message => {
     const success = await changeRank(userId, roleId);
 
     if (success) {
-        message.reply(`✅ Kullanıcı ${userId} başarıyla ${roleId} rolüne yükseltildi.`);
+        message.reply(`✅ User ${userId} has been successfully promoted to role ${roleId}.`);
     } else {
-        message.reply("❌ Rank değiştirme başarısız. Yetkileri veya giriş bilgilerini kontrol et.");
+        message.reply("❌ Rank change failed. Check permissions or login credentials.");
     }
 });
 
+// Log in to Discord with the bot token
 client.login(DISCORD_TOKEN);
